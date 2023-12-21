@@ -1,0 +1,51 @@
+{
+  "data": {
+    "school21": {
+      "getAvatarByUserId": "/services/storage/download/global/ad9d2d3c-5b03-11eb-ae93-0242ac130002?path=default_avatar/noavatar.png",
+      "getStageGroupS21PublicProfile": {
+        "waveId": 1163538,
+        "waveName": "23_12_MSK",
+        "eduForm": "Core program",
+        "__typename": "StageGroupS21"
+      },
+      "getExperiencePublicProfile": {
+        "value": 228,
+        "level": {
+          "levelCode": 0,
+          "range": {
+            "leftBorder": 0,
+            "rightBorder": 499,
+            "__typename": "ExperienceLevelRange"
+          },
+          "__typename": "ExperienceLevel"
+        },
+        "cookiesCount": 5,
+        "coinsCount": 220,
+        "codeReviewPoints": 5,
+        "__typename": "UserExperience"
+      },
+      "getEmailbyUserId": "abathurm@student.21-school.ru",
+      "getClassRoomByLogin": null,
+      "__typename": "School21Queries"
+    },
+    "student": {
+      "getWorkstationByLogin": null,
+      "getFeedbackStatisticsAverageScore": {
+        "countFeedback": 0,
+        "feedbackAverageScore": [],
+        "__typename": "FeedbackStatisticsAverageScore"
+      },
+      "__typename": "StudentQueries"
+    },
+    "user": {
+      "getSchool": {
+        "id": "6bfe3c56-0211-4fe1-9e59-51616caac4dd",
+        "fullName": "Школа 21, Москва",
+        "shortName": "21 Moscow",
+        "address": "Moscow, ул. Вятская 27, стр 42",
+        "__typename": "SafeSchool"
+      },
+      "__typename": "UserQueries"
+    }
+  }
+}

@@ -1,3 +1,3 @@
-module github.com/ntomika/WorkWithPlatform/conf
+module conf
 
 go 1.21.4

@@ -1,0 +1,6 @@
+github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/ntomika/WorkWithPlatform/conf v0.0.0-20231221165602-ab1b83b25af5 h1:0GeWh7c4lOpkhWPE0Mr/Me448fljlckRnJrbGso50Bw=
+github.com/ntomika/WorkWithPlatform/conf v0.0.0-20231221165602-ab1b83b25af5/go.mod h1:4q62nKv/Xz0wmNObf+JiVZeI4w6inYskAGSO2TrHNyA=
+github.com/ntomika/WorkWithPlatform/conf v0.0.0-20231221180420-e555eb88abce h1:sK/gXUA4sK3hZXbEz3ICbvjuArfNoijKiWPDsK78RxE=
+github.com/ntomika/WorkWithPlatform/conf v0.0.0-20231221180420-e555eb88abce/go.mod h1:4q62nKv/Xz0wmNObf+JiVZeI4w6inYskAGSO2TrHNyA=
