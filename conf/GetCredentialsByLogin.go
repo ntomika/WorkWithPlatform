@@ -8,14 +8,14 @@ type GetStudentByLogin struct {
 	IsGraduate bool   `json:"isGraduate"`
 }
 
-type School21 struct {
+type School21User struct {
 	GetStudentByLogin GetStudentByLogin `json:"getStudentByLogin"`
 }
 
-type Data struct {
-	School21 School21 `json:"school21"`
+type DataUser struct {
+	School21User School21User `json:"School21User"`
 }
 
 type GetCredentialsByLogin struct {
-	Data Data `json:"data"`
+	DataUser DataUser `json:"DataUser"`
 }
