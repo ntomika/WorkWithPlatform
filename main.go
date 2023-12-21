@@ -122,7 +122,13 @@ func main() {
 
 	loginsList := openFiles()
 
+	fmt.Println("\tLogin\t\t\t", "Coins\n", "-------------------------------------")
+
 	for _, login := range loginsList {
+		if login == "" {
+			break
+		}
+
 		payloadForLoginData := parsSchemaWithLogin(login)
 		body := handlerRequest("POST", payloadForLoginData)
 		var datasByLogin conf.GetCredentialsByLogin
@@ -139,7 +145,7 @@ func main() {
 			fmt.Println("Step 2: JSON encoding error:", jsonErr)
 		}
 
-		fmt.Println("Login: ", personalInfo.Data.School21.GetEmailbyUserId,
-			"\nCoins: ", personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
+		fmt.Println(personalInfo.Data.School21.GetEmailbyUserId, " | ",
+			personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
 	}
 }
