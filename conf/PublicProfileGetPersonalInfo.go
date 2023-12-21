@@ -40,10 +40,10 @@ type Student struct {
 }
 type School21 struct {
 	GetAvatarByUserId             string                        `json:"getAvatarByUserId"`
-	GetStageGroupS21PublicProfile GetStageGroupS21PublicProfile `json:"getStageGroupS21PublicProfile"`
-	GetExperiencePublicProfile    GetExperiencePublicProfile    `json:"getExperiencePublicProfile"`
 	GetEmailbyUserId              string                        `json:"getEmailbyUserId"`
 	GetClassRoomByLogin           string                        `json:"getClassRoomByLogin"`
+	GetStageGroupS21PublicProfile GetStageGroupS21PublicProfile `json:"getStageGroupS21PublicProfile"`
+	GetExperiencePublicProfile    GetExperiencePublicProfile    `json:"getExperiencePublicProfile"`
 }
 
 type Data struct {
