@@ -1,6 +1,7 @@
 # Work with platform users
 
 /docs/logins  - список пользователей формата `login@student.21-school.ru`
+
 .env          - данные для авторизации
 
 Запуск программы:
