@@ -120,10 +120,10 @@ func handlerRequest(method string, payload *strings.Reader) []byte {
 
 func main() {
 
-	// loginsList := openFiles()
+	loginsList := openFiles()
 
-	// for _, login := range loginsList {
-		payloadForLoginData := parsSchemaWithLogin("abathurm@student.21-school.ru")
+	for _, login := range loginsList {
+		payloadForLoginData := parsSchemaWithLogin(login)
 		body := handlerRequest("POST", payloadForLoginData)
 		var datasByLogin conf.GetCredentialsByLogin
 		jsonErr := json.Unmarshal(body, &datasByLogin)
@@ -131,7 +131,7 @@ func main() {
 			fmt.Println("Step 1: JSON encoding error:", jsonErr)
 		}
 
-		payloadForIDsData := parsSchemaWithIDs(datasByLogin, "abathurm@student.21-school.ru")
+		payloadForIDsData := parsSchemaWithIDs(datasByLogin, login)
 		body = handlerRequest("POST", payloadForIDsData)
 		var personalInfo conf.PublicProfileGetPersonalInfo
 		jsonErr = json.Unmarshal(body, &personalInfo)
@@ -140,6 +140,6 @@ func main() {
 		}
 
 		fmt.Println("Login: ", personalInfo.Data.School21.GetEmailbyUserId,
-			"\nCoins: ", personalInfo.Data.School21.GetExperiencePublicProfile.CookiesCount)
-	// }
+			"\nCoins: ", personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
+	}
 }

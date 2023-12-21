@@ -13,9 +13,9 @@ type School21User struct {
 }
 
 type DataUser struct {
-	School21User School21User `json:"School21User"`
+	School21User School21User `json:"school21"`
 }
 
 type GetCredentialsByLogin struct {
-	DataUser DataUser `json:"DataUser"`
+	DataUser DataUser `json:"data"`
 }
