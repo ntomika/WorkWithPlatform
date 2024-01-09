@@ -1,0 +1,71 @@
+mutation EventsCreateExam($exam: ExamInput!) {
+  businessAdmin {
+    createExam(exam: $exam) {
+      examId
+      __typename
+    }
+    __typename
+  }
+}
+
+{
+  "exam": {
+    "goalId": "66062",                                  // id проекта
+    "name": "DevOps Exam",                              // имя экзамена, как название проекта
+    "examType": "TEST",                                 // TEST - экзамен в виде теста (DevOps Exam, CPPE-T, Core final testing), EXAM - экзамен в виде написания кода (CPP Exam, Core final exam)
+    "location": "Moscow Test",                          // обязательное поле, можно писать просто "Москва" или указывать кластер
+    "maxStudentCount": 1000,
+    "beginDate": "2024-01-10T10:00:00.000Z",            // старт мероприятия экзамена
+    "endDate": "2024-01-10T11:00:00.000Z",              // окончание мероприятия экзамена
+    "isVisible": true,                                  // участники видят мероприятие у себя в дашборде (значение false - не видят)
+    "isWaitListActive": true,
+    "stopRegisterDate": "2024-01-10T09:59:00.000Z",     // окончание возможности зарегистрироваться на мероприятие (обычно = старт мероприятия экзамена)
+    "startRegisterDate": "2024-01-10T09:00:55.000Z",    // начало регистраии на мероприятие (обычно = время с момента заведения мероприятия)
+    "stageSubjectGroups": [
+      "1111575"                                         // то же что classSubjectId из ClassPlansGetClassPlans. id класса
+    ]
+  }
+}
+
+
+/*
+Формат времени (для полей beginDate, endDate, stopRegisterDate, startRegisterDate):
+день: yyyy-mm-dd, время: hh:mm:ss.sss
+пример записи: 2024-01-10T10:00:00.000Z
+
+ID проектов экзамена (для goalId):
+66062 - DevOps Exam
+57572 - CPP Exam
+57573 - CPP Test
+59889 - Core Final Exam
+59888 - Core Final Test
+
+Имена экзаменов (для name)
+DevOps Exam
+CPP Exam
+CPPE-T
+Core final exam
+Core final testing
+
+stageSubjectGroups для классов:
+ - 23_04_MSK_1
+ - 23_04_MSK_2
+ - 23_04_MSK_3
+ - 23_04_MSK_4
+ - 23_04_MSK_5
+ - 23_04_MSK_6
+ - 23_04_MSK_7
+ - 22_04_MSK
+ - 22_11_MSK_11
+ - 22_11_MSK_8
+ - 22_11_MSK_9
+2329858 - 22_10_MSK
+ - 22_11_MSK_3
+ - 22_11_MSK_4
+ - 22_11_MSK_5
+ - 22_11_MSK_6
+ - 22_11_MSK_7
+ - 23_04_MSK
+ - 23_10_MSK
+ - 23_12_MSK
+*/

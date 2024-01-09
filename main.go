@@ -15,11 +15,11 @@ import (
 
 const URL = "https://edu.21-school.ru/services/graphql"
 
-func openFiles() []string {
+func openFiles(path string) []string {
 	logins := make([]string, 8, 16)
 
 	// Открываем файл для чтения
-	file, err := os.Open("docs/logins")
+	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
 	}
@@ -118,9 +118,8 @@ func handlerRequest(method string, payload *strings.Reader) []byte {
 	return body
 }
 
-func main() {
-
-	loginsList := openFiles()
+func checkCoins() {
+	loginsList := openFiles("docs/logins")
 
 	fmt.Println("\tLogin\t\t\t", "Coins\n", "-------------------------------------")
 
@@ -129,17 +128,25 @@ func main() {
 			break
 		}
 
+		// Шаг 1: получить необходимые IDs (userId и studentId) пользователя
+		// Разобрать запрос на query и variables, подставить нужный логин в поле login в variables
 		payloadForLoginData := parsSchemaWithLogin(login)
+		// Отправка запроса с нужным логином
 		body := handlerRequest("POST", payloadForLoginData)
 		var datasByLogin conf.GetCredentialsByLogin
+		// Переложить ответ (body) в структуру datasByLogin
 		jsonErr := json.Unmarshal(body, &datasByLogin)
 		if jsonErr != nil {
 			fmt.Println("Step 1: JSON encoding error:", jsonErr)
 		}
 
+		// Шаг 2: подставить полученные ранее userId и studentId в новый запрос на получение информации о пользователе
+		// Разобрать запрос на query и variables, подставить нужные IDs (userId, studentId) в variables
 		payloadForIDsData := parsSchemaWithIDs(datasByLogin, login)
+		// Отправка запроса c нужными userId, studentId и login
 		body = handlerRequest("POST", payloadForIDsData)
 		var personalInfo conf.PublicProfileGetPersonalInfo
+		// Переложить ответ (body) в структуру personalInfo
 		jsonErr = json.Unmarshal(body, &personalInfo)
 		if jsonErr != nil {
 			fmt.Println("Step 2: JSON encoding error:", jsonErr)
@@ -148,4 +155,76 @@ func main() {
 		fmt.Println(personalInfo.Data.School21.GetEmailbyUserId, " | ",
 			personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
 	}
+}
+
+func createMapClassWithID() (ClassWithID map[string]string) {
+	ClassWithID = map[string]string{
+		"22_04_MSK":    "1137037",
+		"22_10_MSK":    "2329858",
+		"22_11_MSK_11": "2445422",
+		"22_11_MSK_8":  "2445424",
+		"22_11_MSK_9":  "2445425",
+		"22_11_MSK_3":  "2445429",
+		"22_11_MSK_4":  "2445430",
+		"22_11_MSK_5":  "2445564",
+		"22_11_MSK_6":  "2445565",
+		"22_11_MSK_7":  "2445566",
+		"23_04_MSK_1":  "2885181",
+		"23_04_MSK_2":  "2885182",
+		"23_04_MSK_3":  "2885183",
+		"23_04_MSK_4":  "2885184",
+		"23_04_MSK_5":  "2885185",
+		"23_04_MSK_6":  "2885186",
+		"23_04_MSK_7":  "2885187",
+		"23_04_MSK":    "2885282",
+		"23_10_MSK":    "2897827",
+		"23_12_MSK":    "2899307",
+		"Енот":         "1111575",
+	}
+	return
+}
+
+// func newExamEvents() {
+// 	classList := openFiles("docs/classList")
+
+// 	allClassWithID := createMapClassWithID()
+// 	var examStruct conf.ExamData
+
+// 	fmt.Scanf("Название мероприятия: %s", &examStruct.Name)
+// 	if examStruct.Name == "DevOps Exam" {
+// 		examStruct.GoalId = "66062"
+// 		examStruct.ExamType = "TEST"
+// 	}
+
+// 	fmt.Scanf("Место проведения (город кампуса или названия кластера/кластеров): %s", &examStruct.Location)
+// 	fmt.Scanf("Количество участников: %d", &examStruct.MaxStudentCount)
+// 	fmt.Scanf("beginDate format yyyy-mm-ddThh:mm:00.000Z (Москва минус 3 часа): %s", &examStruct.BeginDate)
+// 	fmt.Scanf("endDate yyyy-mm-ddThh:mm:00.000Z (Москва минус 3 часа): %s", &examStruct.EndDate)
+// 	fmt.Scanf("Видимость для участников (true - видимое, false - скрытое) : %t", &examStruct.IsVisible)
+// 	fmt.Scanf("Лист ожидания (true - включено, false - выключено) : %t", &examStruct.IsWaitListActive)
+// 	fmt.Scanf("stopRegisterDate yyyy-mm-ddThh:mm:00.000Z (Москва -3ч) %s", &examStruct.StopRegisterDate)
+// 	fmt.Scanf("startRegisterDate yyyy-mm-ddThh:mm:00.000Z (Москва -3ч) %s", &examStruct.StartRegisterDate)
+
+
+// 	for _, class := range classList {
+// 		classID, ok := allClassWithID[class]
+// 		if ok {
+// 			examStruct.StageSubjectGroups = classID
+// 			fmt.Printf(classID)
+// 		}
+// 	}
+
+// }
+
+func main() {
+
+	if os.Args[1] == "check_coins" {
+		checkCoins()
+	} else if os.Args[1] == "new_exam_events" {
+		// newExamEvents()
+		fmt.Println("new_exam_events")
+	} else {
+		fmt.Println("Incorrect argument.\nSelect one of arguments: check_coins, new_events.\nUse: go run main.go argument")
+	}
+
 }
