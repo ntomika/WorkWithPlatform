@@ -17,7 +17,7 @@ import (
 const URL = "https://edu.21-school.ru/services/graphql"
 
 func readFiles(path string) []string {
-	logins := make([]string, 8, 16)
+	datas := make([]string, 8, 16)
 	// Открываем файл для чтения
 	file, err := os.Open(path)
 	if err != nil {
@@ -28,16 +28,16 @@ func readFiles(path string) []string {
 	// Создаем сканер для чтения файла
 	scanner := bufio.NewScanner(file)
 
-	// Читаем файл построчно и записываем в масив логинов
+	// Читаем файл построчно и записываем в масив данных
 	for i := 0; scanner.Scan(); i++ {
-		logins[i] = scanner.Text()
+		datas[i] = scanner.Text()
 	}
 
 	// Проверяем наличие ошибок после завершения сканирования
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error scanning file:", err)
 	}
-	return logins
+	return datas
 }
 
 func parsSchemaWithIDs(datasByLogin conf.GetCredentialsByLogin, login string) *strings.Reader {
@@ -154,6 +154,8 @@ func checkCoins() {
 			personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
 	}
 }
+
+
 
 func createMapClassWithID() (ClassWithID map[string]string) {
 	ClassWithID = map[string]string{
@@ -335,7 +337,9 @@ func newExamEvents() {
 				fmt.Println("The class named '", class, "' was not found")
 			}
 		}
-		fmt.Println("\nЗавожу мероприятия\n")
+
+
+		// fmt.Println("\nЗавожу мероприятия\n")
 	}
 
 }
