@@ -9,15 +9,15 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 const URL = "https://edu.21-school.ru/services/graphql"
 
-func openFiles(path string) []string {
+func readFiles(path string) []string {
 	logins := make([]string, 8, 16)
-
 	// Открываем файл для чтения
 	file, err := os.Open(path)
 	if err != nil {
@@ -29,10 +29,8 @@ func openFiles(path string) []string {
 	scanner := bufio.NewScanner(file)
 
 	// Читаем файл построчно и записываем в масив логинов
-	i := 0
-	for scanner.Scan() {
+	for i := 0; scanner.Scan(); i++ {
 		logins[i] = scanner.Text()
-		i++
 	}
 
 	// Проверяем наличие ошибок после завершения сканирования
@@ -119,7 +117,7 @@ func handlerRequest(method string, payload *strings.Reader) []byte {
 }
 
 func checkCoins() {
-	loginsList := openFiles("docs/logins")
+	loginsList := readFiles("docs/logins")
 
 	fmt.Println("\tLogin\t\t\t", "Coins\n", "-------------------------------------")
 
@@ -184,45 +182,170 @@ func createMapClassWithID() (ClassWithID map[string]string) {
 	return
 }
 
-// func newExamEvents() {
-// 	classList := openFiles("docs/classList")
+func timeToEvent(dataAndTime string) (newTime string) {
 
-// 	allClassWithID := createMapClassWithID()
-// 	var examStruct conf.ExamData
+	// Парсим строку в time.Time с использованием указанного формата
+	parsedTime, err := time.Parse("2006-01-02 15:04:05", dataAndTime)
+	if err != nil {
+		fmt.Println("Ошибка парсинга времени:", err)
+		return
+	}
 
-// 	fmt.Scanf("Название мероприятия: %s", &examStruct.Name)
-// 	if examStruct.Name == "DevOps Exam" {
-// 		examStruct.GoalId = "66062"
-// 		examStruct.ExamType = "TEST"
-// 	}
+	// Вычитаем 3 часа
+	utcTime := parsedTime.Add(-3 * time.Hour)
 
-// 	fmt.Scanf("Место проведения (город кампуса или названия кластера/кластеров): %s", &examStruct.Location)
-// 	fmt.Scanf("Количество участников: %d", &examStruct.MaxStudentCount)
-// 	fmt.Scanf("beginDate format yyyy-mm-ddThh:mm:00.000Z (Москва минус 3 часа): %s", &examStruct.BeginDate)
-// 	fmt.Scanf("endDate yyyy-mm-ddThh:mm:00.000Z (Москва минус 3 часа): %s", &examStruct.EndDate)
-// 	fmt.Scanf("Видимость для участников (true - видимое, false - скрытое) : %t", &examStruct.IsVisible)
-// 	fmt.Scanf("Лист ожидания (true - включено, false - выключено) : %t", &examStruct.IsWaitListActive)
-// 	fmt.Scanf("stopRegisterDate yyyy-mm-ddThh:mm:00.000Z (Москва -3ч) %s", &examStruct.StopRegisterDate)
-// 	fmt.Scanf("startRegisterDate yyyy-mm-ddThh:mm:00.000Z (Москва -3ч) %s", &examStruct.StartRegisterDate)
+	// Форматируем time.Time обратно в строку с новым форматом
+	newTime = utcTime.Format("2006-01-02T15:04:05.000Z")
 
+	return
+}
 
-// 	for _, class := range classList {
-// 		classID, ok := allClassWithID[class]
-// 		if ok {
-// 			examStruct.StageSubjectGroups = classID
-// 			fmt.Printf(classID)
-// 		}
-// 	}
+func timeToRegister(dataAndTimeStartEvent string) (timeToStart, timeToEnd string) {
+	tmpStartTime := time.Now()
+	utcTime := tmpStartTime.Add(-2 * time.Hour)
+	timeToStart = utcTime.Format("2006-01-02T15:04:05.000Z")
 
-// }
+	// Парсим строку в time.Time с использованием указанного формата
+	tmpEndTime, err := time.Parse("2006-01-02 15:04:05", dataAndTimeStartEvent)
+	if err != nil {
+		fmt.Println("Ошибка парсинга времени:", err)
+		return
+	}
+
+	utcTime = tmpEndTime.Add(-3*time.Hour + (-1)*time.Minute)
+	timeToEnd = utcTime.Format("2006-01-02T15:04:05.000Z")
+
+	return
+}
+
+func checkInfo(examStruct conf.ExamData) (correct int) {
+	fmt.Println("\nПроверка введеных данных:\n----------------------------")
+
+	fmt.Println("Название мероприятия:\t\t\t", examStruct.Name)
+	fmt.Println("Тип экзамена:\t\t\t\t", examStruct.ExamType)
+	fmt.Println("Место:\t\t\t\t\t", examStruct.Location)
+	fmt.Println("Максимальное количество участников:\t", examStruct.MaxStudentCount)
+	fmt.Println("Дата и время мероприятия (время UTC):\t", examStruct.BeginDate, "-", examStruct.EndDate)
+	fmt.Println("Дата и время регистрации (время UTC):\t", examStruct.StartRegisterDate, "-", examStruct.StopRegisterDate)
+
+	var tmpFlag string
+	fmt.Println("Все верно? (y/n)")
+	fmt.Scan(&tmpFlag)
+	if tmpFlag == "y" {
+		correct = 1
+	}
+	return
+}
+
+func getFullStruct(examStruct *conf.ExamData) {
+	var NumExam int
+	var tmpData, tmpTime string
+
+	fmt.Println("Для какого экзамена заводим мероприятия (указать цифру):\n1. DevOps Exam\n2. CPP Exam\n3. CPPE-T\n4. Core final exam\n5. Core final testing")
+
+beginingForSwitch:
+	for {
+		fmt.Scan(&NumExam)
+		switch NumExam {
+		case 1:
+			examStruct.Name = "DevOps Exam"
+			examStruct.GoalId = "66062"
+			examStruct.ExamType = "TEST"
+		case 2:
+			examStruct.Name = "CPP Exam"
+			examStruct.GoalId = "57572"
+			examStruct.ExamType = "EXAM"
+		case 3:
+			examStruct.Name = "CPPE-T"
+			examStruct.GoalId = "57573"
+			examStruct.ExamType = "TEST"
+		case 4:
+			examStruct.Name = "Core final exam"
+			examStruct.GoalId = "59889"
+			examStruct.ExamType = "EXAM"
+		case 5:
+			examStruct.Name = "Core final testing"
+			examStruct.GoalId = "59888"
+			examStruct.ExamType = "TEST"
+		default:
+			fmt.Println("Нужно ввести только цифру из предложенного списка")
+			continue beginingForSwitch
+		}
+		break
+	}
+
+	fmt.Print("Место проведения (город кампуса или названия кластера/кластеров):\n")
+	fmt.Scan(&examStruct.Location)
+
+	fmt.Println("Максимальное количество участников:")
+	fmt.Scan(&examStruct.MaxStudentCount)
+
+	fmt.Println("Дата проведения мероприятия (формат: 'yyyy-mm-dd'):")
+	fmt.Scan(&tmpData)
+	fmt.Println("Время НАЧАЛА мероприятия (формат: 'hh:mm:ss'). Указывать время по МСК:")
+	fmt.Scan(&tmpTime)
+	examStruct.BeginDate = timeToEvent(tmpData + " " + tmpTime)
+
+	examStruct.StartRegisterDate, examStruct.StopRegisterDate = timeToRegister(tmpData + " " + tmpTime)
+
+	fmt.Println("Время ОКОНЧАНИЯ мероприятия (формат: 'hh:mm:ss'). Указывать время по МСК):")
+	fmt.Scan(&tmpTime)
+	examStruct.EndDate = timeToEvent(tmpData + " " + tmpTime)
+}
+
+func newExamEvents() {
+	classList := readFiles("docs/classList")
+
+	fmt.Println("Список классов, для которых будут заведены мероприятия:")
+	for _, className := range classList {
+		if className == "" {
+			break
+		}
+		fmt.Println(className)
+	}
+	fmt.Println("Список корректен? (y/n)")
+	var tmpFlag string
+	fmt.Scan(&tmpFlag)
+	if tmpFlag == "n" {
+		fmt.Println("Проверьте список классов в docs/classList и запустите программу снова")
+		os.Exit(1)
+	} else {
+		allClassWithID := createMapClassWithID()
+		examStruct := conf.ExamData{
+			IsWaitListActive: true,
+			IsVisible:        true,
+		}
+
+		getFullStruct(&examStruct)
+
+		if checkInfo(examStruct) == 0 {
+			fmt.Println("Запустите программу снова")
+			os.Exit(1)
+		}
+
+		for _, class := range classList {
+			if class == "" {
+				break
+			}
+			classID, ok := allClassWithID[class]
+			if ok {
+				examStruct.StageSubjectGroups[0] = classID
+				fmt.Println(class)
+			} else {
+				fmt.Println("The class named '", class, "' was not found")
+			}
+		}
+		fmt.Println("\nЗавожу мероприятия\n")
+	}
+
+}
 
 func main() {
 
 	if os.Args[1] == "check_coins" {
 		checkCoins()
 	} else if os.Args[1] == "new_exam_events" {
-		// newExamEvents()
-		fmt.Println("new_exam_events")
+		newExamEvents()
 	} else {
 		fmt.Println("Incorrect argument.\nSelect one of arguments: check_coins, new_events.\nUse: go run main.go argument")
 	}
