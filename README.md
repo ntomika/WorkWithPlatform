@@ -1,4 +1,4 @@
-# Work with platform users
+# Work with platform (GraphQL)
 
 /docs/logins  - список пользователей формата `login@student.21-school.ru`   
 /docs/classList - список классов   
