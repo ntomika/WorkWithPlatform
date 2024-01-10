@@ -12,5 +12,5 @@ type ExamData struct {
 	IsWaitListActive   bool
 	StopRegisterDate   string
 	StartRegisterDate  string
-	StageSubjectGroups string
+	StageSubjectGroups []string
 }
