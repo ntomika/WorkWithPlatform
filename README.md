@@ -10,8 +10,9 @@
 
 
 Опции:   
-* check_coins - работает со списком пользователей /docs/logins и выводит в результатате список переданых логинов с количеством Coins
-* new_exam_events - работает со списком классов /docs/classList и заводит мероприятия типа TEST или EXAM
+* get_coins_list - работает со списком пользователей /docs/logins и выводит в результатате список переданых логинов с количеством Coins
+* get_PRP_list  - работает со списком пользователей /docs/logins и выводит в результатате список переданых логинов с количеством PRP
+* create_exam_events - работает со списком классов /docs/classList и заводит мероприятия типа TEST или EXAM
 
 Запуск программы:   
-`go run main.go option_name`
+`go run main.go option_name`  
