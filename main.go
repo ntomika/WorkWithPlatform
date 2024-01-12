@@ -146,6 +146,34 @@ func handlerRequest(method string, payload *strings.Reader) []byte {
 	return body
 }
 
+func getPersonalStruct(login string) structs.PublicProfileGetPersonalInfo {
+	// Шаг 1: получить необходимые IDs (userId и studentId) пользователя
+	// Разобрать запрос на query и variables, подставить нужный логин в поле login в variables
+	payloadForLoginData := requestGetCredentialsByLogin(login)
+	// Отправка запроса с нужным логином
+	body := handlerRequest("POST", payloadForLoginData)
+	var datasByLogin structs.GetCredentialsByLogin
+	// Переложить ответ (body) в структуру datasByLogin
+	jsonErr := json.Unmarshal(body, &datasByLogin)
+	if jsonErr != nil {
+		fmt.Println("Step 1: JSON encoding error:", jsonErr)
+	}
+
+	// Шаг 2: подставить полученные ранее userId и studentId в новый запрос на получение информации о пользователе
+	// Разобрать запрос на query и variables, подставить нужные IDs (userId, studentId) в variables
+	payloadForIDsData := requestPublicProfileGetPersonalInfo(datasByLogin, login)
+	// Отправка запроса c нужными userId, studentId и login
+	body = handlerRequest("POST", payloadForIDsData)
+	var personalInfo structs.PublicProfileGetPersonalInfo
+	// Переложить ответ (body) в структуру personalInfo
+	jsonErr = json.Unmarshal(body, &personalInfo)
+	if jsonErr != nil {
+		fmt.Println("Step 2: JSON encoding error:", jsonErr)
+	}
+
+	return personalInfo
+}
+
 func getCoinsList() {
 	loginsList := readFiles("docs/logins")
 
@@ -156,32 +184,27 @@ func getCoinsList() {
 			break
 		}
 
-		// Шаг 1: получить необходимые IDs (userId и studentId) пользователя
-		// Разобрать запрос на query и variables, подставить нужный логин в поле login в variables
-		payloadForLoginData := requestGetCredentialsByLogin(login)
-		// Отправка запроса с нужным логином
-		body := handlerRequest("POST", payloadForLoginData)
-		var datasByLogin structs.GetCredentialsByLogin
-		// Переложить ответ (body) в структуру datasByLogin
-		jsonErr := json.Unmarshal(body, &datasByLogin)
-		if jsonErr != nil {
-			fmt.Println("Step 1: JSON encoding error:", jsonErr)
-		}
-
-		// Шаг 2: подставить полученные ранее userId и studentId в новый запрос на получение информации о пользователе
-		// Разобрать запрос на query и variables, подставить нужные IDs (userId, studentId) в variables
-		payloadForIDsData := requestPublicProfileGetPersonalInfo(datasByLogin, login)
-		// Отправка запроса c нужными userId, studentId и login
-		body = handlerRequest("POST", payloadForIDsData)
-		var personalInfo structs.PublicProfileGetPersonalInfo
-		// Переложить ответ (body) в структуру personalInfo
-		jsonErr = json.Unmarshal(body, &personalInfo)
-		if jsonErr != nil {
-			fmt.Println("Step 2: JSON encoding error:", jsonErr)
-		}
-
+		personalInfo := getPersonalStruct(login)
+		
 		fmt.Println(personalInfo.Data.School21.GetEmailbyUserId, " | ",
 			personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
+	}
+}
+
+func getPRPList() {
+	loginsList := readFiles("docs/logins")
+
+	fmt.Println("\tLogin\t\t\t", "PRP\n", "-------------------------------------")
+
+	for _, login := range loginsList {
+		if login == "" {
+			break
+		}
+
+		personalInfo := getPersonalStruct(login)
+		
+		fmt.Println(personalInfo.Data.School21.GetEmailbyUserId, " | ",
+			personalInfo.Data.School21.GetExperiencePublicProfile.CookiesCount)
 	}
 }
 
@@ -375,21 +398,22 @@ func newExamEvents() {
 			}
 		}
 	}
-
 }
 
 func main() {
 	if len(os.Args) == 1 {
-		fmt.Println("Select one of arguments: get_coins_list, create_exam_events.\nUse: go run main.go argument")
+		fmt.Println("Select one of arguments:\nget_coins_list\nget_PRP_list\ncreate_exam_events\n\nUse: go run main.go argument")
 		return
 	}
 
 	if os.Args[1] == "get_coins_list" {
 		getCoinsList()
+	} else if os.Args[1] == "get_PRP_list" {
+		getPRPList()
 	} else if os.Args[1] == "create_exam_events" {
 		newExamEvents()
 	} else {
-		fmt.Println("Incorrect argument.\nSelect one of arguments: get_coins_list, create_exam_events.\nUse: go run main.go argument")
+		fmt.Println("Incorrect argument.\nSelect one of arguments:\nget_coins_list\nget_PRP_list\ncreate_exam_events\n\nUse: go run main.go argument")
 	}
 
 }
