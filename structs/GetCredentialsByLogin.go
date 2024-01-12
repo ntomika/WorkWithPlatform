@@ -1,4 +1,4 @@
-package conf
+package structs
 
 type GetStudentByLogin struct {
 	StudentId  string `json:"studentId"`

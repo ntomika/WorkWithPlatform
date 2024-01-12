@@ -1,4 +1,4 @@
-package conf
+package structs
 
 type Range struct {
 	LeftBorder  int `json:"leftBorder"`

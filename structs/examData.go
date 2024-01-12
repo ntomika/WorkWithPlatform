@@ -1,4 +1,4 @@
-package conf
+package structs
 
 type ExamData struct {
 	GoalId             string
