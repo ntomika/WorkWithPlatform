@@ -2,13 +2,13 @@ package main
 
 import (
 	"bufio"
-	"conf"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
+	"structs"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -40,9 +40,39 @@ func readFiles(path string) []string {
 	return datas
 }
 
-func parsSchemaWithIDs(datasByLogin conf.GetCredentialsByLogin, login string) *strings.Reader {
+func requestNewExam(examStruct structs.ExamData) *strings.Reader {
+	payloadExample := strings.NewReader("{\"query\":\"mutation EventsCreateExam($exam: ExamInput!) {\\n  businessAdmin {\\n    createExam(exam: $exam) {\\n      examId\\n      __typename\\n    }\\n    __typename\\n  }\\n}\",\"variables\":{\"exam\":{\"goalId\":\"66062\",\"name\":\"DevOps Exam\",\"examType\":\"TEST\",\"location\":\"Moscow\",\"maxStudentCount\":20,\"beginDate\":\"2024-01-10T17:00:00.000Z\",\"endDate\":\"2024-01-10T18:00:00.000Z\",\"isVisible\":false,\"isWaitListActive\":false,\"stopRegisterDate\":\"2024-01-10T16:59:00.000Z\",\"startRegisterDate\":\"2024-01-10T16:40:00.000Z\",\"stageSubjectGroups\":[\"0\"]}}}")
 
-	payloadExample := strings.NewReader("{\"query\":\"query PublicProfileGetPersonalInfo($userId: UUID!, $studentId: UUID!, $login: String!, $schoolId: UUID!) {\\n  school21 {\\n    getAvatarByUserId(userId: $userId)\\n    getStageGroupS21PublicProfile(studentId: $studentId) {\\n      waveId\\n      waveName\\n      eduForm\\n      \\n    }\\n    getExperiencePublicProfile(userId: $userId) {\\n      value\\n      level {\\n        levelCode\\n        range {\\n          leftBorder\\n          rightBorder\\n          \\n        }\\n        \\n      }\\n      cookiesCount\\n      coinsCount\\n      codeReviewPoints\\n      \\n    }\\n    getEmailbyUserId(userId: $userId)\\n    getClassRoomByLogin(login: $login) {\\n      id\\n      number\\n      floor\\n      \\n    }\\n    \\n  }\\n  student {\\n    getWorkstationByLogin(login: $login) {\\n      workstationId\\n      hostName\\n      row\\n      number\\n      \\n    }\\n    getFeedbackStatisticsAverageScore(studentId: $studentId) {\\n      countFeedback\\n      feedbackAverageScore {\\n        categoryCode\\n        categoryName\\n        value\\n        \\n      }\\n      \\n    }\\n    \\n  }\\n  user {\\n    getSchool(schoolId: $schoolId) {\\n      id\\n      fullName\\n      shortName\\n      address\\n      \\n    }\\n    \\n  }\\n}\",\"variables\":{\"userId\":\"25ecd411-4c49-45ed-a422-ac19082bb943\",\"studentId\":\"8311ac3b-1553-47ff-a92f-190c905f8689\",\"schoolId\":\"6bfe3c56-0211-4fe1-9e59-51616caac4dd\",\"login\":\"abathurm@student.21-school.ru\"}}")
+	var payloadTmp map[string]interface{}
+	if err := json.NewDecoder(payloadExample).Decode(&payloadTmp); err != nil {
+		panic(err)
+	}
+	variables := payloadTmp["variables"].(map[string]interface{})
+	exam := variables["exam"].(map[string]interface{})
+	exam["goalId"] = examStruct.GoalId
+	exam["name"] = examStruct.Name
+	exam["examType"] = examStruct.ExamType
+	exam["location"] = examStruct.Location
+	exam["maxStudentCount"] = examStruct.MaxStudentCount
+	exam["beginDate"] = examStruct.BeginDate
+	exam["endDate"] = examStruct.EndDate
+	exam["stopRegisterDate"] = examStruct.StopRegisterDate
+	exam["startRegisterDate"] = examStruct.StartRegisterDate
+	exam["stageSubjectGroups"] = examStruct.StageSubjectGroups[0]
+
+	tmpP, err := json.Marshal(payloadTmp)
+	if err != nil {
+		panic(err)
+	}
+
+	payloadNew := strings.NewReader(string(tmpP))
+
+	return payloadNew
+}
+
+func requestPublicProfileGetPersonalInfo(datasByLogin structs.GetCredentialsByLogin, login string) *strings.Reader {
+
+	payloadExample := strings.NewReader("{\"query\":\"query PublicProfileGetPersonalInfo($userId: UUID!, $studentId: UUID!, $login: String!, $schoolId: UUID!) {\\n  school21 {\\n    getAvatarByUserId(userId: $userId)\\n    getStageGroupS21PublicProfile(studentId: $studentId) {\\n      waveId\\n      waveName\\n      eduForm\\n      \\n    }\\n    getExperiencePublicProfile(userId: $userId) {\\n      value\\n      level {\\n        levelCode\\n        range {\\n          leftBorder\\n          rightBorder\\n          \\n        }\\n        \\n      }\\n      cookiesCount\\n      coinsCount\\n      codeReviewPoints\\n      \\n    }\\n    getEmailbyUserId(userId: $userId)\\n    getClassRoomByLogin(login: $login) {\\n      id\\n      number\\n      floor\\n      \\n    }\\n    \\n  }\\n  student {\\n    getWorkstationByLogin(login: $login) {\\n      workstationId\\n      hostName\\n      row\\n      number\\n      \\n    }\\n    getFeedbackStatisticsAverageScore(studentId: $studentId) {\\n      countFeedback\\n      feedbackAverageScore {\\n        categoryCode\\n        categoryName\\n        value\\n        \\n      }\\n      \\n    }\\n    \\n  }\\n  user {\\n    getSchool(schoolId: $schoolId) {\\n      id\\n      fullName\\n      shortName\\n      address\\n      \\n    }\\n    \\n  }\\n}\",\"variables\":{\"userId\":\"\",\"studentId\":\"\",\"schoolId\":\"6bfe3c56-0211-4fe1-9e59-51616caac4dd\",\"login\":\"\"}}")
 
 	var payloadTmp map[string]interface{}
 	if err := json.NewDecoder(payloadExample).Decode(&payloadTmp); err != nil {
@@ -63,9 +93,9 @@ func parsSchemaWithIDs(datasByLogin conf.GetCredentialsByLogin, login string) *s
 	return payloadNew
 }
 
-func parsSchemaWithLogin(login string) *strings.Reader {
+func requestGetCredentialsByLogin(login string) *strings.Reader {
 
-	payloadExample := strings.NewReader("{\"query\":\"query GetCredentialsByLogin($login: String!) {\\n  school21 {\\n    getStudentByLogin(login: $login) {\\n      studentId\\n      userId\\n      schoolId\\n      isActive\\n      isGraduate\\n      __typename\\n    }\\n    __typename\\n  }\\n}\",\"variables\":{\"login\":\"abathurm@student.21-school.ru\"}}")
+	payloadExample := strings.NewReader("{\"query\":\"query GetCredentialsByLogin($login: String!) {\\n  school21 {\\n    getStudentByLogin(login: $login) {\\n      studentId\\n      userId\\n      schoolId\\n      isActive\\n      isGraduate\\n      __typename\\n    }\\n    __typename\\n  }\\n}\",\"variables\":{\"login\":\"\"}}")
 
 	var payloadTmp map[string]interface{}
 	if err := json.NewDecoder(payloadExample).Decode(&payloadTmp); err != nil {
@@ -116,7 +146,7 @@ func handlerRequest(method string, payload *strings.Reader) []byte {
 	return body
 }
 
-func checkCoins() {
+func getCoinsList() {
 	loginsList := readFiles("docs/logins")
 
 	fmt.Println("\tLogin\t\t\t", "Coins\n", "-------------------------------------")
@@ -128,10 +158,10 @@ func checkCoins() {
 
 		// Шаг 1: получить необходимые IDs (userId и studentId) пользователя
 		// Разобрать запрос на query и variables, подставить нужный логин в поле login в variables
-		payloadForLoginData := parsSchemaWithLogin(login)
+		payloadForLoginData := requestGetCredentialsByLogin(login)
 		// Отправка запроса с нужным логином
 		body := handlerRequest("POST", payloadForLoginData)
-		var datasByLogin conf.GetCredentialsByLogin
+		var datasByLogin structs.GetCredentialsByLogin
 		// Переложить ответ (body) в структуру datasByLogin
 		jsonErr := json.Unmarshal(body, &datasByLogin)
 		if jsonErr != nil {
@@ -140,10 +170,10 @@ func checkCoins() {
 
 		// Шаг 2: подставить полученные ранее userId и studentId в новый запрос на получение информации о пользователе
 		// Разобрать запрос на query и variables, подставить нужные IDs (userId, studentId) в variables
-		payloadForIDsData := parsSchemaWithIDs(datasByLogin, login)
+		payloadForIDsData := requestPublicProfileGetPersonalInfo(datasByLogin, login)
 		// Отправка запроса c нужными userId, studentId и login
 		body = handlerRequest("POST", payloadForIDsData)
-		var personalInfo conf.PublicProfileGetPersonalInfo
+		var personalInfo structs.PublicProfileGetPersonalInfo
 		// Переложить ответ (body) в структуру personalInfo
 		jsonErr = json.Unmarshal(body, &personalInfo)
 		if jsonErr != nil {
@@ -154,8 +184,6 @@ func checkCoins() {
 			personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
 	}
 }
-
-
 
 func createMapClassWithID() (ClassWithID map[string]string) {
 	ClassWithID = map[string]string{
@@ -180,6 +208,7 @@ func createMapClassWithID() (ClassWithID map[string]string) {
 		"23_10_MSK":    "2897827",
 		"23_12_MSK":    "2899307",
 		"Енот":         "1111575",
+		"ТестДевопс":   "2896773",
 	}
 	return
 }
@@ -220,7 +249,7 @@ func timeToRegister(dataAndTimeStartEvent string) (timeToStart, timeToEnd string
 	return
 }
 
-func checkInfo(examStruct conf.ExamData) (correct int) {
+func checkInfo(examStruct structs.ExamData) (correct int) {
 	fmt.Println("\nПроверка введеных данных:\n----------------------------")
 
 	fmt.Println("Название мероприятия:\t\t\t", examStruct.Name)
@@ -239,7 +268,7 @@ func checkInfo(examStruct conf.ExamData) (correct int) {
 	return
 }
 
-func getFullStruct(examStruct *conf.ExamData) {
+func getFullStruct(examStruct *structs.ExamData) {
 	var NumExam int
 	var tmpData, tmpTime string
 
@@ -310,10 +339,10 @@ func newExamEvents() {
 	fmt.Scan(&tmpFlag)
 	if tmpFlag == "n" {
 		fmt.Println("Проверьте список классов в docs/classList и запустите программу снова")
-		os.Exit(1)
+		return
 	} else {
 		allClassWithID := createMapClassWithID()
-		examStruct := conf.ExamData{
+		examStruct := structs.ExamData{
 			IsWaitListActive: true,
 			IsVisible:        true,
 		}
@@ -322,7 +351,7 @@ func newExamEvents() {
 
 		if checkInfo(examStruct) == 0 {
 			fmt.Println("Запустите программу снова")
-			os.Exit(1)
+			return
 		}
 
 		for _, class := range classList {
@@ -331,27 +360,36 @@ func newExamEvents() {
 			}
 			classID, ok := allClassWithID[class]
 			if ok {
+				fmt.Println("\nКласс", class)
 				examStruct.StageSubjectGroups[0] = classID
-				fmt.Println(class)
+
+				// Разобрать запрос на query и variables, подставить все значения из examStruct в variables
+				neededRequest := requestNewExam(examStruct)
+
+				// Отправка запроса с нужными variables
+				body := handlerRequest("POST", neededRequest)
+
+				fmt.Println("Ответ:\n", string(body))
 			} else {
 				fmt.Println("The class named '", class, "' was not found")
 			}
 		}
-
-
-		// fmt.Println("\nЗавожу мероприятия\n")
 	}
 
 }
 
 func main() {
+	if len(os.Args) == 1 {
+		fmt.Println("Select one of arguments: get_coins_list, create_exam_events.\nUse: go run main.go argument")
+		return
+	}
 
-	if os.Args[1] == "check_coins" {
-		checkCoins()
-	} else if os.Args[1] == "new_exam_events" {
+	if os.Args[1] == "get_coins_list" {
+		getCoinsList()
+	} else if os.Args[1] == "create_exam_events" {
 		newExamEvents()
 	} else {
-		fmt.Println("Incorrect argument.\nSelect one of arguments: check_coins, new_events.\nUse: go run main.go argument")
+		fmt.Println("Incorrect argument.\nSelect one of arguments: get_coins_list, create_exam_events.\nUse: go run main.go argument")
 	}
 
 }
