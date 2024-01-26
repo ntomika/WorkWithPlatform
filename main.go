@@ -40,6 +40,26 @@ func readFiles(path string) []string {
 	return datas
 }
 
+func requestGetProjectInfo(datasByLogin structs.GetCredentialsByLogin) *strings.Reader {
+	payloadExample := strings.NewReader("{\"query\":\"query PublicProfileGetProjects($studentId: UUID!, $stageGroupId: ID!) {\\n  school21 {\\n    getStudentProjectsForPublicProfileByStageGroup(\\n      studentId: $studentId\\n      stageGroupId: $stageGroupId\\n    ) {\\n      groupName\\n      name\\n      experience\\n      finalPercentage\\n      goalId\\n      goalStatus\\n      amountAnswers\\n      amountReviewedAnswers\\n      __typename\\n    }\\n    __typename\\n  }\\n}\",\"variables\":{\"studentId\":\"0b934e65-a16a-43b2-aaed-b6eebfd189bf\",\"stageGroupId\":\"1164482\"}}")
+
+	var payloadTmp map[string]interface{}
+	if err := json.NewDecoder(payloadExample).Decode(&payloadTmp); err != nil {
+		panic(err)
+	}
+	variables := payloadTmp["variables"].(map[string]interface{})
+	variables["studentId"] = datasByLogin.DataUser.School21User.GetStudentByLogin.StudentId
+
+	tmpP, err := json.Marshal(payloadTmp)
+	if err != nil {
+		panic(err)
+	}
+
+	payloadNew := strings.NewReader(string(tmpP))
+
+	return payloadNew
+}
+
 func requestNewExam(examStruct structs.ExamData) *strings.Reader {
 	payloadExample := strings.NewReader("{\"query\":\"mutation EventsCreateExam($exam: ExamInput!) {\\n  businessAdmin {\\n    createExam(exam: $exam) {\\n      examId\\n      __typename\\n    }\\n    __typename\\n  }\\n}\",\"variables\":{\"exam\":{\"goalId\":\"66062\",\"name\":\"DevOps Exam\",\"examType\":\"TEST\",\"location\":\"Moscow\",\"maxStudentCount\":20,\"beginDate\":\"2024-01-10T17:00:00.000Z\",\"endDate\":\"2024-01-10T18:00:00.000Z\",\"isVisible\":false,\"isWaitListActive\":false,\"stopRegisterDate\":\"2024-01-10T16:59:00.000Z\",\"startRegisterDate\":\"2024-01-10T16:40:00.000Z\",\"stageSubjectGroups\":[\"0\"]}}}")
 
@@ -172,40 +192,6 @@ func getPersonalStruct(login string) structs.PublicProfileGetPersonalInfo {
 	}
 
 	return personalInfo
-}
-
-func getCoinsList() {
-	loginsList := readFiles("docs/logins")
-
-	fmt.Println("\tLogin\t\t\t", "Coins\n", "-------------------------------------")
-
-	for _, login := range loginsList {
-		if login == "" {
-			break
-		}
-
-		personalInfo := getPersonalStruct(login)
-		
-		fmt.Println(personalInfo.Data.School21.GetEmailbyUserId, " | ",
-			personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
-	}
-}
-
-func getPRPList() {
-	loginsList := readFiles("docs/logins")
-
-	fmt.Println("\tLogin\t\t\t", "PRP\n", "-------------------------------------")
-
-	for _, login := range loginsList {
-		if login == "" {
-			break
-		}
-
-		personalInfo := getPersonalStruct(login)
-		
-		fmt.Println(personalInfo.Data.School21.GetEmailbyUserId, " | ",
-			personalInfo.Data.School21.GetExperiencePublicProfile.CookiesCount)
-	}
 }
 
 func createMapClassWithID() (ClassWithID map[string]string) {
@@ -347,6 +333,40 @@ beginingForSwitch:
 	examStruct.EndDate = timeToEvent(tmpData + " " + tmpTime)
 }
 
+func getCoinsList() {
+	loginsList := readFiles("docs/logins")
+
+	fmt.Println("\tLogin\t\t\t", "Coins\n", "-------------------------------------")
+
+	for _, login := range loginsList {
+		if login == "" {
+			break
+		}
+
+		personalInfo := getPersonalStruct(login)
+
+		fmt.Println(personalInfo.Data.School21.GetEmailbyUserId, " | ",
+			personalInfo.Data.School21.GetExperiencePublicProfile.CoinsCount)
+	}
+}
+
+func getPRPList() {
+	loginsList := readFiles("docs/logins")
+
+	fmt.Println("\tLogin\t\t\t", "PRP\n", "-------------------------------------")
+
+	for _, login := range loginsList {
+		if login == "" {
+			break
+		}
+
+		personalInfo := getPersonalStruct(login)
+
+		fmt.Println(personalInfo.Data.School21.GetEmailbyUserId, " | ",
+			personalInfo.Data.School21.GetExperiencePublicProfile.CookiesCount)
+	}
+}
+
 func newExamEvents() {
 	classList := readFiles("docs/classList")
 
@@ -400,6 +420,49 @@ func newExamEvents() {
 	}
 }
 
+func getProjectsInfo() {
+	loginsList := readFiles("docs/logins")
+
+	fmt.Println("\tLogin\t\t\t", "Status \n", "-------------------------------------------")
+	for _, login := range loginsList {
+		if login == "" {
+			return
+		}
+		fmt.Print(login, " | ")
+		// Разобрать запрос на query и variables, подставить нужный логин в поле login в variables
+		payloadForLoginData := requestGetCredentialsByLogin(login)
+
+		// Отправка запроса с нужным логином
+		body := handlerRequest("POST", payloadForLoginData)
+		var datasByLogin structs.GetCredentialsByLogin
+		// Переложить ответ (body) в структуру datasByLogin
+		jsonErr := json.Unmarshal(body, &datasByLogin)
+		if jsonErr != nil {
+			fmt.Println("JSON encoding error:", jsonErr)
+		}
+
+		// Собрать нужный request для получения информации по всем проектам пользователя
+		requestForProject := requestGetProjectInfo(datasByLogin)
+		// Отправка запроса для получения информации по всем проектам пользовтеля
+		body = handlerRequest("POST", requestForProject)
+		var datasForProject structs.School21Queries
+		// Переложить ответ (body) в структуру datasForProject
+		jsonErr = json.Unmarshal(body, &datasForProject)
+		if jsonErr != nil {
+			fmt.Println("JSON encoding error:", jsonErr)
+		}
+
+		for i := 0; i < 22; i++ {
+			if datasForProject.Data.School21.GetStudentProjectsForPublicProfileByStageGroup[i].Name == "P01D06" {
+				fmt.Println(datasForProject.Data.School21.GetStudentProjectsForPublicProfileByStageGroup[i].GoalStatus)
+			} else {
+				continue
+			}
+		}
+
+	}
+}
+
 func main() {
 	if len(os.Args) == 1 {
 		fmt.Println("Select one of arguments:\nget_coins_list\nget_PRP_list\ncreate_exam_events\n\nUse: go run main.go argument")
@@ -412,6 +475,8 @@ func main() {
 		getPRPList()
 	} else if os.Args[1] == "create_exam_events" {
 		newExamEvents()
+	} else if os.Args[1] == "get_projects_info" {
+		getProjectsInfo()
 	} else {
 		fmt.Println("Incorrect argument.\nSelect one of arguments:\nget_coins_list\nget_PRP_list\ncreate_exam_events\n\nUse: go run main.go argument")
 	}
